@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package apartment;
+
+service Apartment {
+  rpc GetDevice (GetDeviceRequest) returns (Device) {};
+}
+
+message Device {
+  string name = 1;
+  bool state = 2;
+}
+
+message GetDeviceRequest {
+  string name = 1;
+}
