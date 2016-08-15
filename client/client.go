@@ -21,8 +21,11 @@ func main() {
 	defer conn.Close()
 	c := apb.NewApartmentClient(conn)
 
-	for i := 0; i < 50; i++ {
-		device, err := c.GetDevice(context.Background(), &apb.GetDeviceRequest{Name: "Water"})
+	devices, _ := c.ListDevices(context.Background(), &apb.ListDevicesRequest{})
+	log.Printf("devices: %v", devices)
+
+	for i := 0; i < 5; i++ {
+		device, err := c.GetDevice(context.Background(), &apb.GetDeviceRequest{Name: "cabinetlights"})
 		if err != nil {
 			log.Fatalf("get device error: %v", err)
 		}

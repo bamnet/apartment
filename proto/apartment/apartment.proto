@@ -3,13 +3,22 @@ syntax = "proto3";
 package apartment;
 
 service Apartment {
+  rpc ListDevices (ListDevicesRequest) returns (ListDevicesResponse){};
   rpc GetDevice (GetDeviceRequest) returns (Device) {};
   rpc UpdateDevice (UpdateDeviceRequest) returns (Device) {};
 }
 
 message Device {
   string name = 1;
-  bool state = 2;
+  string friendly_name = 2;
+  bool state = 3;
+}
+
+message ListDevicesRequest {
+}
+
+message ListDevicesResponse {
+  repeated Device device = 1;
 }
 
 message GetDeviceRequest {
