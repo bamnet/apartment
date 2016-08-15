@@ -4,6 +4,7 @@ package apartment;
 
 service Apartment {
   rpc GetDevice (GetDeviceRequest) returns (Device) {};
+  rpc UpdateDevice (UpdateDeviceRequest) returns (Device) {};
 }
 
 message Device {
@@ -13,4 +14,8 @@ message Device {
 
 message GetDeviceRequest {
   string name = 1;
+}
+
+message UpdateDeviceRequest {
+  Device device = 1;
 }

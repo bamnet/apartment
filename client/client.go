@@ -21,9 +21,19 @@ func main() {
 	defer conn.Close()
 	c := apb.NewApartmentClient(conn)
 
-	resp, err := c.GetDevice(context.Background(), &apb.GetDeviceRequest{})
-	if err != nil {
-		log.Fatalf("get device error: %v", err)
+	for i := 0; i < 50; i++ {
+		device, err := c.GetDevice(context.Background(), &apb.GetDeviceRequest{Name: "Water"})
+		if err != nil {
+			log.Fatalf("get device error: %v", err)
+		}
+		log.Printf("response: %v", device)
+
+		device.State = !device.State
+		device, err = c.UpdateDevice(context.Background(), &apb.UpdateDeviceRequest{
+			Device: device,
+		})
+		if err != nil {
+			log.Fatalf("unable to update device: %v", err)
+		}
 	}
-	log.Printf("response: %v", resp)
 }
