@@ -50,8 +50,6 @@ func (s *Server) ListDevices(ctx context.Context, _ *apb.ListDevicesRequest) (*a
 // GetDevice gets the latest information about a Device.
 func (s *Server) GetDevice(ctx context.Context, in *apb.GetDeviceRequest) (*apb.Device, error) {
 	d, err := s.lookupDevice(in.Name)
-	log.Printf("device: %v, name: %s, err: %v", d, in.Name, err)
-	log.Printf("devices: %v", s.devices)
 	if err != nil {
 		return nil, err
 	}
