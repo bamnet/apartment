@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/bamnet/apartment/wemo"
 	"github.com/cenk/backoff"
@@ -20,14 +21,36 @@ type Server struct {
 // It connects and maps the initial set of devices.
 func NewServer() (*Server, error) {
 	aSrv := &Server{devices: map[string]*wemo.Device{}}
-	devices, err := wemo.DiscoverDevices()
-	if err != nil {
+	if err := aSrv.mapDevices(); err != nil {
 		return nil, err
 	}
-	for _, d := range devices {
-		aSrv.devices[rename(d.FriendlyName)] = d
-	}
+	aSrv.remapper(60 * time.Second)
+
 	return aSrv, nil
+}
+
+func (s *Server) mapDevices() error {
+	devices, err := wemo.DiscoverDevices()
+	if err != nil {
+		return err
+	}
+	// TODO(bamnet): Wrap this in a mutex.
+	for _, d := range devices {
+		s.devices[rename(d.FriendlyName)] = d
+	}
+	return nil
+}
+
+func (s *Server) remapper(interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				s.mapDevices()
+			}
+		}
+	}()
 }
 
 // ListDevices lists all the devices the server is aware of.
