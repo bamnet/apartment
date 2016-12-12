@@ -6,9 +6,12 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"regexp"
 	"strconv"
+
+	"github.com/huin/goupnp"
 )
 
 const (
@@ -53,6 +56,31 @@ func NewDevice(host string) (*Device, error) {
 		Host:         host,
 		FriendlyName: data.Device.FriendlyName,
 	}, nil
+}
+
+// DiscoverDevices finds all the Wemo Switch or Insight Switches on the network.
+func DiscoverDevices() ([]*Device, error) {
+	devices := []*Device{}
+
+	types := []string{
+		"urn:Belkin:device:insight:1",
+		"urn:Belkin:device:controllee:1",
+	}
+	for _, t := range types {
+		hosts, err := goupnp.DiscoverDevices(t)
+		if err != nil {
+			return nil, err
+		}
+		for _, host := range hosts {
+			d, err := NewDevice(host.Location.Host)
+			if err != nil {
+				log.Printf("unable to connect to %s: %v", host.Location.Host, err)
+				continue
+			}
+			devices = append(devices, d)
+		}
+	}
+	return devices, nil
 }
 
 const getBinaryStateMsg = `

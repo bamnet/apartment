@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/bamnet/apartment/wemo"
@@ -21,13 +20,11 @@ type Server struct {
 // It connects and maps the initial set of devices.
 func NewServer() (*Server, error) {
 	aSrv := &Server{devices: map[string]*wemo.Device{}}
-	hosts := []string{"192.168.1.187:49153", "192.168.1.73:49153", "192.168.1.140:49153"}
-	for _, h := range hosts {
-		d, err := wemo.NewDevice(h)
-		if err != nil {
-			log.Printf("unable to connect to %s: %v", h, err)
-			continue
-		}
+	devices, err := wemo.DiscoverDevices()
+	if err != nil {
+		return nil, err
+	}
+	for _, d := range devices {
 		aSrv.devices[rename(d.FriendlyName)] = d
 	}
 	return aSrv, nil
