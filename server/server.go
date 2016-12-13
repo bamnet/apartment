@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/bamnet/apartment/wemo"
@@ -15,12 +16,17 @@ import (
 // Server holds the internal device connections.
 type Server struct {
 	devices map[string]*wemo.Device
+
+	mutex *sync.Mutex
 }
 
 // NewServer builds a new Apartment server.
 // It connects and maps the initial set of devices.
 func NewServer() (*Server, error) {
-	aSrv := &Server{devices: map[string]*wemo.Device{}}
+	aSrv := &Server{
+		devices: map[string]*wemo.Device{},
+		mutex:   &sync.Mutex{},
+	}
 	if err := aSrv.mapDevices(); err != nil {
 		return nil, err
 	}
@@ -34,7 +40,8 @@ func (s *Server) mapDevices() error {
 	if err != nil {
 		return err
 	}
-	// TODO(bamnet): Wrap this in a mutex.
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	for _, d := range devices {
 		s.devices[rename(d.FriendlyName)] = d
 	}
@@ -57,6 +64,8 @@ func (s *Server) remapper(interval time.Duration) {
 // It does not attempt to identify the state of the devices.
 func (s *Server) ListDevices(ctx context.Context, _ *apb.ListDevicesRequest) (*apb.ListDevicesResponse, error) {
 	resp := apb.ListDevicesResponse{}
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	for n, d := range s.devices {
 		device := &apb.Device{
 			Name:         n,
@@ -96,6 +105,8 @@ func (s *Server) UpdateDevice(ctx context.Context, in *apb.UpdateDeviceRequest) 
 // lookupDevice is a shortcut function to try and find a device in
 // the internal device map.
 func (s *Server) lookupDevice(name string) (*wemo.Device, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	d, ok := s.devices[name]
 	if !ok {
 		return nil, fmt.Errorf("no device found")
