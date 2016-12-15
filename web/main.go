@@ -85,6 +85,7 @@ func main() {
 	client = apb.NewApartmentClient(conn)
 
 	http.Handle("/node_modules/", http.StripPrefix("/node_modules/", http.FileServer(http.Dir("./node_modules"))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	http.HandleFunc("/toggle", toggleHandler)
 	http.HandleFunc("/", indexHandler)
 	http.ListenAndServe(":8080", nil)
