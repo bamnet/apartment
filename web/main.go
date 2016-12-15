@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"sort"
 
 	"google.golang.org/grpc"
 
@@ -19,6 +20,19 @@ var (
 )
 
 var client apb.ApartmentClient
+
+// ByFriendlyName sorts devices by their friendly name.
+type ByFriendlyName []*apb.Device
+
+func (s ByFriendlyName) Len() int {
+	return len(s)
+}
+func (s ByFriendlyName) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s ByFriendlyName) Less(i, j int) bool {
+	return s[i].FriendlyName < s[j].FriendlyName
+}
 
 func toggleHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
@@ -51,10 +65,15 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp, _ := client.ListDevices(context.Background(), &apb.ListDevicesRequest{})
 	p.Devices = resp.Device
+	sort.Sort(ByFriendlyName(p.Devices))
 
 	if err := templates.ExecuteTemplate(w, "index.html", p); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func init() {
+	flag.Parse()
 }
 
 func main() {
