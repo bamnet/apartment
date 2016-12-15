@@ -1,0 +1,12 @@
+{
+  "name": "apartment",
+  "version": "0.0.0",
+  "description": "Frontend app to control the apartment.",
+  "repository": "bamnet/apartment",
+  "dependencies": {
+    "material-design-lite": "^1.2.1"
+  },
+  "devDependencies": {},
+  "author": "Brian Michalski",
+  "license": "Apache-2.0"
+}
