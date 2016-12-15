@@ -11,11 +11,21 @@
   </head>
 
   <body>
-    <ul>
+    <ul class="mdl-list">
       {{ range .Devices }}
-        <li><a href="/toggle?name={{ .Name }}">{{ .FriendlyName }}</a></li>
+        <li class="mdl-list__item">
+          <button onclick='toggle("{{ .Name }}")'
+                  class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+            {{ .FriendlyName }}
+          </button>
+        </li>
       {{ end }}
-    </ul>
+    <ul>
     <script src="/node_modules/material-design-lite/material.min.js"></script>
+    <script>
+      function toggle(name) {
+        window.location.href = '/toggle?name=' + name;
+      }
+    </script>
   </body>
 </html>
