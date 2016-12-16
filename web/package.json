@@ -4,7 +4,8 @@
   "description": "Frontend app to control the apartment.",
   "repository": "bamnet/apartment",
   "dependencies": {
-    "material-design-lite": "^1.2.1"
+    "material-design-lite": "^1.2.1",
+    "pwacompat": "^1.0.2"
   },
   "devDependencies": {},
   "author": "Brian Michalski",
