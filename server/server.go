@@ -40,11 +40,17 @@ func (s *Server) mapDevices() error {
 	if err != nil {
 		return err
 	}
+	// Build a new device map.  Appending to the existing map
+	// will leave devices which are no longer connected / have been renamed.
+	ds := map[string]*wemo.Device{}
+	for _, d := range devices {
+		ds[rename(d.FriendlyName)] = d
+	}
+
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	for _, d := range devices {
-		s.devices[rename(d.FriendlyName)] = d
-	}
+	s.devices = ds
+
 	return nil
 }
 
