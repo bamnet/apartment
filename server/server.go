@@ -13,9 +13,13 @@ import (
 	apb "github.com/bamnet/apartment/proto/apartment"
 )
 
+// Number of scans in-a-row a device must be not found to be removed.
+const missingThreshold = 5
+
 // Server holds the internal device connections.
 type Server struct {
 	devices map[string]*wemo.Device
+	missing map[string]int
 
 	mutex *sync.Mutex
 }
@@ -25,6 +29,7 @@ type Server struct {
 func NewServer() (*Server, error) {
 	aSrv := &Server{
 		devices: map[string]*wemo.Device{},
+		missing: map[string]int{},
 		mutex:   &sync.Mutex{},
 	}
 	if err := aSrv.mapDevices(); err != nil {
@@ -40,17 +45,33 @@ func (s *Server) mapDevices() error {
 	if err != nil {
 		return err
 	}
-	// Build a new device map.  Appending to the existing map
-	// will leave devices which are no longer connected / have been renamed.
-	ds := map[string]*wemo.Device{}
-	for _, d := range devices {
-		ds[rename(d.FriendlyName)] = d
-	}
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	s.devices = ds
 
+	found := map[string]bool{} // Keys of newly found devices.
+	for _, d := range devices {
+		key := rename(d.FriendlyName)
+		s.devices[key] = d
+		found[key] = true
+		delete(s.missing, key) // Remove the device from the missing map.
+	}
+
+	// Loop through all the existing devices, see if we found them during the
+	// latest scan. Increase the missing count of those not found.
+	for key := range s.devices {
+		if _, exists := found[key]; !exists {
+			s.missing[key]++
+		}
+	}
+
+	// Loop through the missing devices and remove them if missing for too long.
+	for key, count := range s.missing {
+		if count > missingThreshold {
+			delete(s.devices, key)
+			delete(s.missing, key)
+		}
+	}
 	return nil
 }
 
